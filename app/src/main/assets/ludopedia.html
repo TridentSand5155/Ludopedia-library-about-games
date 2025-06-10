@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Ludopedia</title>
+    <style>
+        * {
+          user-select: none !important;
+          -webkit-user-select: none !important;
+          -ms-user-select: none !important;
+          -moz-user-select: none !important;
+        }
+
+        body {
+          font-family: Arial, sans-serif;
+          margin: 0;
+          padding: 1rem;
+          background: #111;
+          color: #eee;
+        }
+
+        .search {
+          margin-bottom: 1rem;
+        }
+
+        input {
+          padding: 0.5rem;
+          font-size: 1rem;
+          width: 100%;
+          border-radius: 5px;
+          border: none;
+          background: #222;
+          color: #eee;
+        }
+
+        input:focus {
+          outline: 2px solid #ff4444;
+        }
+
+        .grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 1rem;
+        }
+
+        .game {
+          background: #222;
+          border-radius: 8px;
+          overflow: hidden;
+          padding: 0.5rem;
+          text-align: center;
+          cursor: pointer;
+          transition: background 0.3s, transform 0.3s;
+        }
+
+        .game:hover {
+          background: #333;
+          transform: scale(1.02);
+        }
+
+        img {
+          width: 100%;
+          height: 200px;
+          object-fit: cover;
+          border-radius: 4px;
+          pointer-events: none;
+        }
+
+        .title {
+          font-weight: bold;
+          margin: 0.5rem 0 0.2rem;
+        }
+
+        .meta {
+          font-size: 0.9rem;
+          color: #aaa;
+        }
+
+        .rating {
+          margin-top: 0.3rem;
+          font-size: 0.9rem;
+          color: #fff;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+        }
+
+        .star {
+          color: #ffdd00;
+          font-size: 1rem;
+        }
+
+        .description {
+          margin-top: 0.5rem;
+          font-size: 0.85rem;
+          line-height: 1.3;
+          color: #ccc;
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.4s ease, padding 0.4s ease;
+          padding: 0 0.5rem;
+          text-align: left;
+        }
+
+        .game.expanded .description {
+          max-height: 500px;
+          padding: 0.5rem 0.5rem;
+        }
+    </style>
+</head>
+
+<body oncontextmenu="return false" oncopy="return false" oncut="return false" onpaste="return false">
+<div class="search">
+    <input type="text" id="searchInput" placeholder="Поиск игр по названию, жанру, платформе..." />
+</div>
+
+<div class="grid" id="gamesGrid"></div>
+
+<script>
+    // Блокируем выделение мышкой через JS (на всякий)
+    document.addEventListener('selectstart', e => e.preventDefault());
+
+    const games = [
+  {
+    title: "The Witcher 3",
+    image: "images/the-witcher-3.jpg",
+    year: 2015,
+    genre: "RPG",
+    platform: "PC/PS/Xbox",
+    rating: 9.6,
+    description: "Эпос о ведьмаке, где каждое решение — как удар меча: острое и необратимое. Мир полон жестокости и красоты, а твоя дорога — между моралью и выживанием. Погружение в тёмные сказки, где нет чёрного и белого, только оттенки серого."
+  },
+  {
+    title: "Red Dead Redemption 2",
+    image: "images/red-dead-redemption-2.jpg",
+    year: 2018,
+    genre: "Action",
+    platform: "PC/PS/Xbox",
+    rating: 9.8,
+    description: "Песня последнего ковбоя, живущего на краю исчезающей эпохи. Жизнь — как выстрел из револьвера: скоротечна и полна смысла. Захватывающий дикий запад, где свобода и предательство идут рука об руку."
+  },
+  {
+    title: "Minecraft",
+    image: "images/minecraft.jpg",
+    year: 2011,
+    genre: "Sandbox",
+    platform: "All",
+    rating: 9.0,
+    description: "Пиксельный конструктор вселенной, где ты бог, шахтёр и архитектор одновременно. Эта игра позволяет создавать всё, что душе угодно — от простых домов до масштабных механизмов. Бесконечные возможности для творчества и исследования притягивают миллионы игроков всех возрастов. Здесь нет ограничений, только твоя фантазия и желание строить и исследовать. Minecraft стал культурным феноменом и основой для множества проектов и сообществ по всему миру."
+  },
+  {
+    title: "Half-Life 2",
+    image: "images/half-life-2.jpg",
+    year: 2004,
+    genre: "FPS",
+    platform: "PC",
+    rating: 9.5,
+    description: "Научно-фантастический шутер, где наука и мрак переплетаются в смертельном танце. Гордон Фримен — тихий герой, чьи действия рушат миры и меняют судьбы. Взрывные сцены, продуманный мир и гнетущая атмосфера безысходности."
+  },
+  {
+    title: "Portal 2",
+    image: "images/portal-2.jpg",
+    year: 2011,
+    genre: "Puzzle",
+    platform: "PC/PS/Xbox",
+    rating: 9.3,
+    description: "Головоломка с тонким юмором и искусным дизайном уровней. Твои порталы — портал к безумной науке и сарказму искусственного интеллекта. Здесь логика — твой лучший друг, а смех — лекарство от одиночества."
+  },
+  {
+    title: "GTA V",
+    image: "images/grand-theft-auto-v.jpg",
+    year: 2013,
+    genre: "Action",
+    platform: "PC/PS/Xbox",
+    rating: 9.4,
+    description: "Безжалостный мир преступности и городских джунглей. Три судьбы переплетаются в погоне за деньгами, властью и свободой. Криминальный экшен с открытым миром, где ты — и герой, и злодей."
+  },
+  {
+    title: "God of War",
+    image: "images/god-of-war.jpg",
+    year: 2018,
+    genre: "Action",
+    platform: "PS/PC",
+    rating: 9.7,
+    description: "Сага о боге войны, ставшем отцом, и его пути через мифы и реальность. Брутальность и трогательность переплетаются в битвах и диалогах, где каждый удар весомее слов. Это не просто игра — это душа, выковываемая в огне мести и любви."
+  },
+  {
+    title: "Cyberpunk 2077",
+    image: "images/cyberpunk-2077.jpg",
+    year: 2020,
+    genre: "RPG",
+    platform: "PC/PS/Xbox",
+    rating: 7.8,
+    description: "Неоновое безумие будущего, где технологии и человечность сражаются за выживание. Город, полный опасностей и возможностей, зовёт тебя испытать судьбу. Несмотря на шероховатости, здесь есть своя, хрупкая красота."
+  },
+  {
+    title: "Dark Souls",
+    image: "images/dark-souls.jpg",
+    year: 2011,
+    genre: "Action RPG",
+    platform: "PC/PS/Xbox",
+    rating: 9.2,
+    description: "Игры для тех, кто готов умереть снова и снова, чтобы стать сильнее. Мир, полный боли и тайн, где каждый шаг — вызов судьбе. Здесь нет жалости — только борьба за свет и надежду в бездне."
+  },
+  {
+    title: "Sekiro",
+    image: "images/sekiro.jpg",
+    year: 2019,
+    genre: "Action",
+    platform: "PC/PS/Xbox",
+    rating: 9.0,
+    description: "Самурайская честь и бескомпромиссная смерть. Брось вызов судьбе, отточай каждый удар и живи на грани — или умри, пытаясь."
+  },
+  {
+    title: "Elden Ring",
+    image: "images/elden-ring.jpg",
+    year: 2022,
+    genre: "RPG",
+    platform: "PC/PS/Xbox",
+    rating: 9.7,
+    description: "Открытый мир, рожденный из тёмных фантазий и эпических историй. Исследуй безграничные просторы, сражайся с богами и тьмой, стань легендой, которую запомнят навсегда."
+  },
+  {
+    title: "DOOM Eternal",
+    image: "images/doom-eternal.jpg",
+    year: 2020,
+    genre: "FPS",
+    platform: "PC/PS/Xbox",
+    rating: 9.1,
+    description: "Адская машина для уничтожения демонов с максимальной скоростью и огнём. Бешеный экшен, где каждая пуля — пощады нет. Музыка и стрельба сливаются в экстазе кровавой ярости."
+  },
+  {
+    title: "Skyrim",
+    image: "images/skyrim.jpg",
+    year: 2011,
+    genre: "RPG",
+    platform: "All",
+    rating: 9.0,
+    description: "Земля драконов и легенд, где каждый может стать героем своей истории. Открытый мир с бесконечными возможностями, исследованием и магией — классика, проверенная временем."
+  },
+  {
+    title: "Hades",
+    image: "images/hades.jpg",
+    year: 2020,
+    genre: "Roguelike",
+    platform: "PC/Switch/PS/Xbox",
+    rating: 9.4,
+    description: "Погружение в греческий ад с юмором и стилем. Бегство из преисподней — это больше, чем игра, это симфония борьбы, судьбы и любви, обернутая в пульсирующий ритм."
+  },
+  {
+    title: "Stardew Valley",
+    image: "images/stardew-valley.jpg",
+    year: 2016,
+    genre: "Simulation",
+    platform: "All",
+    rating: 9.0,
+    description: "Тихая жизнь на ферме, где каждый день — шанс начать заново. От простых дел до глубинных отношений — игра, которая учит ценить простое и искать радость в мелочах."
+  },
+  {
+    title: "Undertale",
+    image: "images/undertale.jpg",
+    year: 2015,
+    genre: "RPG",
+    platform: "PC",
+    rating: 9.0,
+    description: "История, где каждое действие меняет всё. Игра, что ломает четвёртую стену, смешит и ранит, заставляет думать и чувствовать — настоящий шедевр в мире пикселей."
+  },
+  {
+    title: "Detroit: Become Human",
+    image: "images/detroit-become-human.jpg",
+    year: 2018,
+    genre: "Adventure",
+    platform: "PS/PC",
+    rating: 8.3,
+    description: "Путешествие в будущее, где роботы ищут свободу и человечность. Истории, наполненные выбором и последствиями, где каждое решение — отражение души."
+  },
+  {
+    title: "Resident Evil Village",
+    image: "images/resident-evil-village.jpg",
+    year: 2021,
+    genre: "Horror",
+    platform: "PC/PS/Xbox",
+    rating: 8.7,
+    description: "Темные коридоры страха и загадок. Выживание в деревне кошмаров, где каждая тень может стать последней. Классика хоррора с современным лицом."
+  },
+  {
+  title: "The Legend of Zelda: Breath of the Wild",
+  image: "images/zelda-breath-of-the-wild.jpg",
+  year: 2017,
+  genre: "Adventure",
+  platform: "Nintendo Switch",
+  rating: 9.7,
+  description: "Ветер свободы и тайны затаились в каждом уголке Хайрула. Играй, словно исследователь без границ, где каждая гора зовёт, а каждая река шепчет легенды. Мечты о приключениях оживают в этом живом, дышащем мире."
+},
+{
+  title: "Hollow Knight",
+  image: "images/hollow-knight.jpg",
+  year: 2017,
+  genre: "Metroidvania",
+  platform: "PC/PS/Xbox/Switch",
+  rating: 9.0,
+  description: "Тёмные катакомбы и безмолвные королевства полны загадок и опасностей. Маленький рыцарь с огромным сердцем борется с тенями прошлого. Мрачная поэзия боли и упорства в каждом прыжке и ударе."
+},
+{
+  title: "Among Us",
+  image: "images/among-us.jpg",
+  year: 2018,
+  genre: "Party",
+  platform: "PC/Mobile/PS/Xbox/Switch",
+  rating: 7.5,
+  description: "В космосе никто не услышит твою ложь — или услышит? Игра про подозрения и дружбу на грани, где каждый может оказаться предателем. Простая, но чертовски цепляющая игра о том, как важно не доверять никому."
+},
+{
+  title: "Celeste",
+  image: "images/celeste.jpg",
+  year: 2018,
+  genre: "Platformer",
+  platform: "PC/PS/Xbox/Switch",
+  rating: 9.1,
+  description: "История о борьбе с внутренними демонами и горах, которые кажутся непреодолимыми. Пиксельный платформер с сердцем, где каждый прыжок — маленькая победа над собой."
+},
+{
+  title: "Monster Hunter: World",
+  image: "images/monster-hunter-world.jpg",
+  year: 2018,
+  genre: "Action RPG",
+  platform: "PC/PS/Xbox",
+  rating: 8.7,
+  description: "Охота, что затягивает, как паутина судьбы. Мир живёт и дышит, а твоя задача — стать охотником, которого запомнят. Громадные монстры, тактика и адреналин на каждом шагу."
+},
+{
+  title: "Cuphead",
+  image: "images/cuphead.jpg",
+  year: 2017,
+  genre: "Run and Gun",
+  platform: "PC/Xbox/Switch",
+  rating: 8.8,
+  description: "Ретро-карикатура с дьявольской сложностью и музыкой, что заводит кровь. Визуально — взрыв эпохи мультфильмов 30-х, по духу — бескомпромиссная битва с самим собой и судьбой."
+},
+{
+  title: "Fall Guys",
+  image: "images/fall-guys.jpg",
+  year: 2020,
+  genre: "Battle Royale/Party",
+  platform: "PC/PS/Xbox/Switch",
+  rating: 7.3,
+  description: "Безумная гонка на выживание с кучей смеха и падений. Здесь никто не серьёзен, кроме жёсткой борьбы за победу и кучи шуток над самим собой."
+},
+{
+  title: "Ghost of Tsushima",
+  image: "images/ghost-of-tsushima.jpg",
+  year: 2020,
+  genre: "Action-Adventure",
+  platform: "PS4/PS5",
+  rating: 8.6,
+  description: "Самурайский эпос на закате эпохи. Ветер на острове Цусима шепчет истории о чести, предательстве и свободе. Каждый взмах катаны — баллада о мужестве и судьбе."
+},
+{
+  title: "Death Stranding",
+  image: "images/death-stranding.jpg",
+  year: 2019,
+  genre: "Action",
+  platform: "PC/PS4/PS5",
+  rating: 7.9,
+  description: "Мир после апокалипсиса, где ты — связующее звено между отрезанными островами человечества. Прогулка с грустью и надеждой, где каждая посылка — символ доверия."
+},
+{
+  title: "Slay the Spire",
+  image: "images/slay-the-spire.jpg",
+  year: 2019,
+  genre: "Deck-building Roguelike",
+  platform: "PC/PS/Xbox/Switch/Mobile",
+  rating: 8.7,
+  description: "Карточная битва с элементами roguelike, где стратегия и удача идут рука об руку. Каждый шаг к вершине — борьба за выживание и контроль."
+},
+  {
+    "title": "Outer Wilds",
+    "image": "images/outer-wilds.jpg",
+    "year": 2019,
+    "genre": "Adventure/Exploration",
+    "platform": "PC/PS4/Xbox One/Switch",
+    "rating": 8.8,
+    "description": "Космос поёт о тайнах. Ты — путешественник во времени, исследующий умирающую звёздную систему. Здесь каждая планета — загадка, каждый виток петли — шаг к правде. Без боя, без суеты — только наука, философия и одиночество среди вечности."
+  },
+  {
+    "title": "Katana ZERO",
+    "image": "images/katana-zero.jpg",
+    "year": 2019,
+    "genre": "Action/Platformer",
+    "platform": "PC/Switch",
+    "rating": 8.4,
+    "description": "Хром и неон, замедление времени и философия насилия. Ты — убийца с туманной памятью, у которого каждый бой — как балет смерти. Здесь стиль важен, как и история, что скрыта за каждым мечом и таблеткой."
+  },
+  {
+    "title": "Signalis",
+    "image": "images/signalis.jpg",
+    "year": 2022,
+    "genre": "Survival Horror",
+    "platform": "PC/PS4/Xbox One/Switch",
+    "rating": 8.2,
+    "description": "Космический хоррор в стиле ретро-футуризма. В стерильных коридорах станции рождается страх, а в сердце машины — тоска по человечности. Это история любви, боли и поиска себя в мире, где всё давно умерло."
+  },
+  {
+    "title": "Lisa: The Painful",
+    "image": "images/lisa-painful.jpg",
+    "year": 2014,
+    "genre": "RPG",
+    "platform": "PC",
+    "rating": 8.1,
+    "description": "Юмор и боль, уродство и трогательная человечность. После конца света остались только шрамы. Ты ищешь дочь, но каждый шаг требует жертвы. Грубый, странный и откровенно безумный мир, где слёзы и смех идут рука об руку."
+  },
+  {
+    "title": "Pathologic 2",
+    "image": "images/pathologic-2.jpg",
+    "year": 2019,
+    "genre": "Survival/Adventure",
+    "platform": "PC/PS4/Xbox One",
+    "rating": 8.0,
+    "description": "Город умирает. Ты не спаситель, ты — часть его гниения. Русская философия, страдание, невозможный выбор. Здесь нет победы — только процесс, в котором истина тонет в крови, пыли и театральных масках."
+  },
+  {
+    "title": "Rain World",
+    "image": "images/rain-world.jpg",
+    "year": 2017,
+    "genre": "Survival/Platformer",
+    "platform": "PC/PS4/Switch/Xbox One",
+    "rating": 8.3,
+    "description": "Ты — маленький слизнежорик в мире, где всё хочет тебя сожрать. Природа красива и жестока, дождь смертелен, а одиночество — твой единственный спутник. Это симфония выживания в экосистеме, равнодушной к тебе."
+  },
+  {
+    "title": "Omori",
+    "image": "images/omori.jpg",
+    "year": 2020,
+    "genre": "Psychological Horror/RPG",
+    "platform": "PC/Switch/PS4/Xbox One",
+    "rating": 8.9,
+    "description": "Сначала всё мило. А потом — тревожно. Пиксельная грусть, где каждый бой — отражение травмы, а музыка — шепот воспоминаний. Это не просто игра, а личная психотерапия, где ты либо примешь себя, либо потеряешь навсегда."
+  },
+  {
+    "title": "Inscryption",
+    "image": "images/inscryption.jpg",
+    "year": 2021,
+    "genre": "Card Battler/Psychological Horror",
+    "platform": "PC/PS4/PS5/Switch",
+    "rating": 8.6,
+    "description": "Ты играешь в настольную игру... но это не просто карты. Это история, что ломает четвёртую стену, реальность и здравый смысл. Мрачная эстетика, криповый сюжет, сюрреализм, где каждая жертва — буквально жертва."
+  },
+  {
+    "title": "Night in the Woods",
+    "image": "images/night-in-the-woods.jpg",
+    "year": 2017,
+    "genre": "Adventure/Narrative",
+    "platform": "PC/PS4/Switch/Xbox One/Mobile",
+    "rating": 8.4,
+    "description": "Вернувшись в родной город, ты ищешь... хоть что-то. Друзей, смысл, себя. Милые зверушки — лишь маска для истории о депрессии, взрослении и тоске по детству, которого уже не вернуть. Грустная сказка о реальности."
+  },
+  {
+    "title": "Gris",
+    "image": "images/gris.jpg",
+    "year": 2018,
+    "genre": "Platformer/Art Game",
+    "platform": "PC/Switch/PS4/Xbox One/Mobile",
+    "rating": 8.5,
+    "description": "Твоя боль становится цветом. Платформер без слов, но с голосом, что говорит через образы. GRIS — это игра о принятии утраты, нарисованная акварелью слёз. Прекрасная, как сон, который не хочется забывать."
+  },
+    ];
+
+    const grid = document.getElementById('gamesGrid');
+
+    function renderGames(data) {
+      grid.innerHTML = '';
+      data.forEach(game => {
+        const div = document.createElement('div');
+        div.className = 'game';
+        div.innerHTML = `
+          <img src="${game.image}" alt="${game.title}" />
+          <div class="title">${game.title}</div>
+          <div class="meta">${game.genre} | ${game.platform} | ${game.year}</div>
+          <div class="rating"><span class="star">★</span> ${game.rating}</div>
+          <div class="description">${game.description}</div>
+        `;
+        div.addEventListener('click', () => {
+          div.classList.toggle('expanded');
+        });
+        grid.appendChild(div);
+      });
+    }
+
+    document.getElementById('searchInput').addEventListener('input', function () {
+      const query = this.value.toLowerCase();
+      const filtered = games.filter(game =>
+        game.title.toLowerCase().includes(query) ||
+        game.genre.toLowerCase().includes(query) ||
+        game.platform.toLowerCase().includes(query)
+      );
+      renderGames(filtered);
+    });
+
+    renderGames(games);
+</script>
+</body>
+</html>

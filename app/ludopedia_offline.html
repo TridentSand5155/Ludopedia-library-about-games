@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Ludopedia — Offline Mode</title>
+        <style>
+            body {
+              margin: 0;
+              font-family: Arial, sans-serif;
+              background: #121212;
+              color: #fff;
+            }
+            header {
+              background: #ff4444;
+              padding: 10px;
+              text-align: center;
+              font-size: 1.2em;
+              font-weight: bold;
+            }
+            .grid {
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+              gap: 16px;
+              padding: 16px;
+            }
+            .card {
+              background: #1f1f1f;
+              border-radius: 8px;
+              overflow: hidden;
+              box-shadow: 0 0 10px rgba(255, 255, 255, 0.05);
+              text-align: center;
+            }
+            .card img {
+              width: 100%;
+              height: 120px;
+              object-fit: cover;
+            }
+            .card-content {
+              padding: 10px;
+            }
+            .card-content h3 {
+              margin: 8px 0 4px;
+              font-size: 1em;
+            }
+            .meta {
+              font-size: 0.85em;
+              color: #aaa;
+            }
+        </style>
+    </head>
+    <body>
+        <header>ОФФЛАЙН РЕЖИМ</header>
+        <div class="grid" id="gameGrid"></div>
+
+        <script>
+            const games = [
+              { title: "The Witcher 3", image: "the-witcher-3.jpg", year: 2015, genre: "RPG", platform: "PC/PS/Xbox" },
+              { title: "Red Dead Redemption 2", image: "red-dead-redemption-2.jpg", year: 2018, genre: "Action", platform: "PC/PS/Xbox" },
+              { title: "Minecraft", image: "minecraft.jpg", year: 2011, genre: "Sandbox", platform: "All" },
+              { title: "Half-Life 2", image: "half-life-2.jpg", year: 2004, genre: "FPS", platform: "PC" },
+              { title: "Portal 2", image: "portal-2.jpg", year: 2011, genre: "Puzzle", platform: "PC/PS/Xbox" },
+              { title: "GTA V", image: "gta-v.jpg", year: 2013, genre: "Action", platform: "PC/PS/Xbox" },
+              { title: "God of War", image: "god-of-war.jpg", year: 2018, genre: "Action", platform: "PS/PC" },
+              { title: "Cyberpunk 2077", image: "cyberpunk-2077.jpg", year: 2020, genre: "RPG", platform: "PC/PS/Xbox" },
+              { title: "Dark Souls III", image: "dark-souls-3.jpg", year: 2016, genre: "Action RPG", platform: "PC/PS/Xbox" },
+              { title: "Sekiro", image: "sekiro.jpg", year: 2019, genre: "Action", platform: "PC/PS/Xbox" },
+              { title: "Elden Ring", image: "elden-ring.jpg", year: 2022, genre: "RPG", platform: "PC/PS/Xbox" },
+              { title: "DOOM Eternal", image: "doom-eternal.jpg", year: 2020, genre: "FPS", platform: "PC/PS/Xbox" },
+              { title: "Skyrim", image: "skyrim.jpg", year: 2011, genre: "RPG", platform: "All" },
+              { title: "Hades", image: "hades.jpg", year: 2020, genre: "Roguelike", platform: "PC/Switch/PS/Xbox" },
+              { title: "Stardew Valley", image: "stardew-valley.jpg", year: 2016, genre: "Simulation", platform: "All" }
+            ];
+
+            const container = document.getElementById('gameGrid');
+
+            games.forEach(game => {
+              const card = document.createElement('div');
+              card.className = 'card';
+              card.innerHTML = `
+                <img src="images/${game.image}" alt="${game.title}">
+                <div class="card-content">
+                  <h3>${game.title}</h3>
+                  <div class="meta">${game.genre} • ${game.platform} • ${game.year}</div>
+                </div>
+              `;
+              container.appendChild(card);
+            });
+        </script>
+    </body>
+</html>
